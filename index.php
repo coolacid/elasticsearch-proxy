@@ -1,24 +1,19 @@
 <?php
 
 include_once("users.php");
+include_once("config.php");
 
 // nginx oddity
 $rest_json = file_get_contents("php://input");
 $_POST = json_decode($rest_json, true);
 
-$ES_HOST = "10.0.10.160";
-$ES_PORT = "9200";
+$baseUri = "http://" . $config['ES_HOST'] ."/" . $_SERVER["SCRIPT_NAME"];
 
-$baseUri = "http://$ES_HOST/" . $_SERVER["SCRIPT_NAME"];
+$ini = parse_ini_file ($config['INI'], true);
 
-$ini = parse_ini_file ("users.ini", true);
 $filters = array();
 
 BuildUser($ini, "jakendall", $filters);
-
-//$filters = array();
-
-//print_r($filters); die();
 
 function GenerateFilter($Field, $Value) {
     $Add['fquery']['query']['field'][$Field]['query'] = $Value;
@@ -82,7 +77,7 @@ $json_doc = BuildQuery($Request);
 // TODO: Should probably look at attempting different backends
 $ci = curl_init();
 curl_setopt($ci, CURLOPT_URL, $baseUri);
-curl_setopt($ci, CURLOPT_PORT, $ES_PORT);
+curl_setopt($ci, CURLOPT_PORT, $config['ES_PORT']);
 curl_setopt($ci, CURLOPT_TIMEOUT, 200);
 curl_setopt($ci, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
