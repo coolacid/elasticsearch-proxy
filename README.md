@@ -11,7 +11,7 @@ What I needed to be able todo is add filters on the fly based on a user. Initiia
 Todo Steps
 ----------
 
-- Get it working by adding filter on the fly
+* Get it working by adding filter on the fly
 - Detect user, add filter based on user id
 - Add Groups, so you can assign users to groups, then add filters based on those groups
 - Config file - so you don't have to hard code things in PHP, just write a "config"
