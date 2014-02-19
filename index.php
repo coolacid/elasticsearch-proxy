@@ -8,6 +8,9 @@ $ES_HOST = "10.0.10.160";
 $ES_PORT = "9200";
 
 $baseUri = "http://$ES_HOST/" . $_SERVER["SCRIPT_NAME"];
+$filters = array();
+$filters[] = array('must', 'src_ip', "10.0.0.100");
+$filters[] = array('mustNot', 'query', "AAAA");
 
 function GenerateFilter($Field, $Value) {
     $Add['fquery']['query']['field'][$Field]['query'] = $Value;
@@ -52,26 +55,23 @@ function BuildQuery($Original) {
     return json_encode($Original);
 }
 
-//$request = '{"query":{"filtered":{"query":{"bool":{"should":[{"query_string":{"query":"*"}}]}},"filter":{"bool":{"must":[{"match_all":{}},{"range":{"@timestamp":{"from":1392821619767,"to":1392821679768}}},{"bool":{"must":[{"match_all":{}}]}}]}}}},"highlight":{"fields":{},"fragment_size":2147483647,"pre_tags":["@start-highlight@"],"post_tags":["@end-highlight@"]},"size":500,"sort":[{"@timestamp":{"order":"desc"}}]}';
-//$request = '{"facets":{"0":{"date_histogram":{"field":"@timestamp","interval":"1s"},"global":true,"facet_filter":{"fquery":{"query":{"filtered":{"query":{"query_string":{"query":"*"}},"filter":{"bool":{"must":[{"match_all":{}},{"range":{"@timestamp":{"from":1392821619767,"to":1392821679768}}},{"fquery":{"query":{"field":{"tags":{"query":"(\"mikrotik\" AND \"Filtered\")"}}},"_cache":true}},{"bool":{"must":[{"match_all":{}}]}}]}}}}}}}},"size":0}';
-
-//$Request = json_decode($request, true);
+function DoFilters(&$Request, $Filters) {
+    // Look for any "must" filters and build them
+    foreach ($Filters as $Filter) {
+	$Request = AddFilter($Request, $Filter[0], GenerateFilter($Filter[1], $Filter[2]));
+    }    
+    return $Request;
+}
 
 $Request = $_POST;
 
-//$Filters[] = GenerateFilter("tags", "_grokparsefailure");
-$Filters[] = GenerateFilter("src_ip", "10.0.0.100");
-$Filters1[] = GenerateFilter("query", "AAAA");
+DoFilters($Request, $filters);
 
-$Request = AddFilter($Request, "must", $Filters);
-$Request = AddFilter($Request, "mustNot", $Filters1);
-
-//print_r($Request);
-
+// Build the query
 $json_doc = BuildQuery($Request);
 
-//print_r($json_doc);
-
+// Send the new request to the backend
+// TODO: Should probably look at attempting different backends
 $ci = curl_init();
 curl_setopt($ci, CURLOPT_URL, $baseUri);
 curl_setopt($ci, CURLOPT_PORT, $ES_PORT);
@@ -82,4 +82,5 @@ curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
 curl_setopt($ci, CURLOPT_POSTFIELDS, $json_doc);
 $response = curl_exec($ci);
 
+// Relay the response back to the client
 echo $response;
