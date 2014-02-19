@@ -1,7 +1,13 @@
 <?php
 
-$baseUri = "http://10.0.10.160/logstash-2014.02.19/_search";
-$search_port = "9200";
+// nginx oddity
+$rest_json = file_get_contents("php://input");
+$_POST = json_decode($rest_json, true);
+
+$ES_HOST = "10.0.10.160";
+$ES_PORT = "9200";
+
+$baseUri = "http://$ES_HOST/" . $_SERVER["SCRIPT_NAME"];
 
 function GenerateFilter($Field, $Value) {
     $Add['fquery']['query']['field'][$Field]['query'] = $Value;
@@ -46,27 +52,29 @@ function BuildQuery($Original) {
     return json_encode($Original);
 }
 
-// $request = '{"query":{"filtered":{"query":{"bool":{"should":[{"query_string":{"query":"*"}}]}},"filter":{"bool":{"must":[{"match_all":{}},{"range":{"@timestamp":{"from":1392821619767,"to":1392821679768}}},{"bool":{"must":[{"match_all":{}}]}}]}}}},"highlight":{"fields":{},"fragment_size":2147483647,"pre_tags":["@start-highlight@"],"post_tags":["@end-highlight@"]},"size":500,"sort":[{"@timestamp":{"order":"desc"}}]}';
-$request = '{"facets":{"0":{"date_histogram":{"field":"@timestamp","interval":"1s"},"global":true,"facet_filter":{"fquery":{"query":{"filtered":{"query":{"query_string":{"query":"*"}},"filter":{"bool":{"must":[{"match_all":{}},{"range":{"@timestamp":{"from":1392821619767,"to":1392821679768}}},{"fquery":{"query":{"field":{"tags":{"query":"(\"mikrotik\" AND \"Filtered\")"}}},"_cache":true}},{"bool":{"must":[{"match_all":{}}]}}]}}}}}}}},"size":0}';
+//$request = '{"query":{"filtered":{"query":{"bool":{"should":[{"query_string":{"query":"*"}}]}},"filter":{"bool":{"must":[{"match_all":{}},{"range":{"@timestamp":{"from":1392821619767,"to":1392821679768}}},{"bool":{"must":[{"match_all":{}}]}}]}}}},"highlight":{"fields":{},"fragment_size":2147483647,"pre_tags":["@start-highlight@"],"post_tags":["@end-highlight@"]},"size":500,"sort":[{"@timestamp":{"order":"desc"}}]}';
+//$request = '{"facets":{"0":{"date_histogram":{"field":"@timestamp","interval":"1s"},"global":true,"facet_filter":{"fquery":{"query":{"filtered":{"query":{"query_string":{"query":"*"}},"filter":{"bool":{"must":[{"match_all":{}},{"range":{"@timestamp":{"from":1392821619767,"to":1392821679768}}},{"fquery":{"query":{"field":{"tags":{"query":"(\"mikrotik\" AND \"Filtered\")"}}},"_cache":true}},{"bool":{"must":[{"match_all":{}}]}}]}}}}}}}},"size":0}';
 
-$Request = json_decode($request, true);
+//$Request = json_decode($request, true);
+
+$Request = $_POST;
 
 //$Filters[] = GenerateFilter("tags", "_grokparsefailure");
 $Filters[] = GenerateFilter("src_ip", "10.0.0.100");
 $Filters1[] = GenerateFilter("query", "AAAA");
 
-//$Request = AddFilter($Request, "must", $Filters);
-//$Request = AddFilter($Request, "mustNot", $Filters1);
+$Request = AddFilter($Request, "must", $Filters);
+$Request = AddFilter($Request, "mustNot", $Filters1);
 
 //print_r($Request);
 
 $json_doc = BuildQuery($Request);
 
-print_r($json_doc);
+//print_r($json_doc);
 
 $ci = curl_init();
 curl_setopt($ci, CURLOPT_URL, $baseUri);
-curl_setopt($ci, CURLOPT_PORT, $search_port);
+curl_setopt($ci, CURLOPT_PORT, $ES_PORT);
 curl_setopt($ci, CURLOPT_TIMEOUT, 200);
 curl_setopt($ci, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
@@ -74,4 +82,4 @@ curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
 curl_setopt($ci, CURLOPT_POSTFIELDS, $json_doc);
 $response = curl_exec($ci);
 
-print_r(json_decode($response));
+echo $response;
