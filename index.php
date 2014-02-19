@@ -1,5 +1,7 @@
 <?php
 
+include_once("users.php");
+
 // nginx oddity
 $rest_json = file_get_contents("php://input");
 $_POST = json_decode($rest_json, true);
@@ -8,9 +10,15 @@ $ES_HOST = "10.0.10.160";
 $ES_PORT = "9200";
 
 $baseUri = "http://$ES_HOST/" . $_SERVER["SCRIPT_NAME"];
+
+$ini = parse_ini_file ("users.ini", true);
 $filters = array();
-$filters[] = array('must', 'src_ip', "10.0.0.100");
-$filters[] = array('mustNot', 'query', "AAAA");
+
+BuildUser($ini, "jakendall", $filters);
+
+//$filters = array();
+
+//print_r($filters); die();
 
 function GenerateFilter($Field, $Value) {
     $Add['fquery']['query']['field'][$Field]['query'] = $Value;
@@ -58,7 +66,7 @@ function BuildQuery($Original) {
 function DoFilters(&$Request, $Filters) {
     // Look for any "must" filters and build them
     foreach ($Filters as $Filter) {
-	$Request = AddFilter($Request, $Filter[0], GenerateFilter($Filter[1], $Filter[2]));
+	$Request = AddFilter($Request, $Filter['type'], GenerateFilter($Filter['field'], $Filter['value']));
     }    
     return $Request;
 }
