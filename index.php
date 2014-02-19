@@ -10,11 +10,22 @@ function GenerateFilter($Field, $Value) {
 }
 
 function AddFilter($Original, $Type, $Filters) {
-    // Check to see the type is allready defined - if not, define it.
-    if (!isset($Original['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['query']['filtered']['filter']['bool'])) {
-	$Original['query']['filtered']['filter']['bool'][$Type] = array();
+    // Which type of _search are we looking at, we need to add the filter to the correct location
+    if (isset ($Original['query']) || array_key_exists('query', $Original)) {
+	// This is a regular query
+	// Check to see the type is allready defined - if not, define it.
+	if (!isset($Original['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['query']['filtered']['filter']['bool'])) {
+	    $Original['query']['filtered']['filter']['bool'][$Type] = array();
+	}
+	array_push($Original['query']['filtered']['filter']['bool'][$Type], $Filters);
+    } elseif (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
+	// This is a facet query
+	// TODO - Not supporting it yet, so, frack it, don't add the filter ;)
+	$i=0; // No-op
+    } else {
+	// Something we don't know about yet - probably should raise an error or something
+	die ("A search query we don't understand");
     }
-    array_push($Original['query']['filtered']['filter']['bool'][$Type], $Filters);
     return $Original;
 }
 
