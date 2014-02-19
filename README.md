@@ -12,8 +12,8 @@ Todo Steps
 ----------
 
 - ~~Get it working by adding filter on the fly~~
-- Detect user, add filter based on user id
-- Add Groups, so you can assign users to groups, then add filters based on those groups
+- Detect user, ~~add filter based on user id~~
+- ~~Add Groups, so you can assign users to groups, then add filters based on those groups~~
 - Config file - so you don't have to hard code things in PHP, just write a "config"
 - Add Authentication "plugins" so we don't have to rely on web process to authenticate the user
 
