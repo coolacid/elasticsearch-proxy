@@ -41,6 +41,8 @@ Well, to start, it's a programming language I know well enough to release as. I'
 
 Also, since for Kibana we already have a web server, there really isn't a need for yet ANOTHER port to be open just to proxy requests. This serves the purpose.
 
+I may spend some time re-doing this in Python - but, I'd have to learn how to CGI python, plus, PHP and web servers play well together already. 
+
 
 To-do Steps
 ----------
