@@ -34,6 +34,8 @@ Another option that was proposed was using targeted Kibana consoles, yeah, this 
 - You can't lock down the access, all the "checks" are client side, thus, any user can still access all the data
 - It doesn't stop someone from sending a DELETE or PUT command, unless you proxy those.
 
+Another implementation, acts as a webserver and proxy in Ruby: https://github.com/christian-marie/kibana3_auth
+
 Why PHP
 -------
 
