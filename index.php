@@ -1,23 +1,21 @@
 <?php
-
 include_once("users.php");
 include_once("config.php");
 
-// nginx oddity
+# JSON-POST must be read through php://input
 $rest_json = file_get_contents("php://input");
 $_POST = json_decode($rest_json, true);
 
-$baseUri = "http://" . $config['ES_HOST'] ."/" . $_SERVER["SCRIPT_NAME"];
+$baseUri = "http://" . $config['ES_HOST'] . $_SERVER["REQUEST_URI"];
 
 $ini = parse_ini_file ($config['INI'], true);
 
 $filters = array();
-
-BuildUser($ini, "jakendall", $filters);
+BuildUser($ini, $_SERVER['REMOTE_USER'], $filters);
 
 function GenerateFilter($Field, $Value) {
     $Add['fquery']['query']['field'][$Field]['query'] = $Value;
-    $Add['fquery']['_cache'] = 1;
+    $Add['fquery']['_cache'] = true;
     return $Add;
 }
 
@@ -62,15 +60,14 @@ function DoFilters(&$Request, $Filters) {
     // Look for any "must" filters and build them
     foreach ($Filters as $Filter) {
 	$Request = AddFilter($Request, $Filter['type'], GenerateFilter($Filter['field'], $Filter['value']));
-    }    
+    }
     return $Request;
 }
 
 $Request = $_POST;
 
-DoFilters($Request, $filters);
-
 // Build the query
+DoFilters($Request, $filters);
 $json_doc = BuildQuery($Request);
 
 // Send the new request to the backend
@@ -83,6 +80,7 @@ curl_setopt($ci, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
 curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
 curl_setopt($ci, CURLOPT_POSTFIELDS, $json_doc);
+header('Content-Type: application/json');
 $response = curl_exec($ci);
 
 // Relay the response back to the client
