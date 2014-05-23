@@ -20,38 +20,45 @@ function GenerateFilter($Field, $Value) {
 }
 
 function AddFilter($Original, $Type, $Filters) {
-    // Which type of _search are we looking at, we need to add the filter to the correct location
+    // We need to add the filter to the correct location, depending on which type of _search are we looking at
     if (isset ($Original['query']) || array_key_exists('query', $Original)) {
-	// This is a regular query
-	// Check to see the type is allready defined - if not, define it.
-	if (!isset($Original['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['query']['filtered']['filter']['bool'])) {
-	    $Original['query']['filtered']['filter']['bool'][$Type] = array();
-	}
-	array_push($Original['query']['filtered']['filter']['bool'][$Type], $Filters);
+        // This is a regular query
+        // Check to see the type is already defined - if not, define it.
+        if (!isset($Original['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['query']['filtered']['filter']['bool'])) {
+            $Original['query']['filtered']['filter']['bool'][$Type] = array();
+        }
+        array_push($Original['query']['filtered']['filter']['bool'][$Type], $Filters);
     } elseif (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
-	// This is a facet query
-	for ($i=0; $i<count($Original['facets']); ++$i) {
-	    if(!isset($Original['facets'][$i]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['facets'][$i]['facet_filter']['fquery']['query']['filtered']['filter']['bool'])) {
-		$Original['facets'][$i]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type] = array();
-	    }
-	    array_push($Original['facets'][$i]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type], $Filters);
-	}
+        // This is a facet query
+        foreach ($Original['facets'] as $key => $value) {
+            if(!isset($Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'])) {
+                $Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type] = array();
+            }
+            array_push($Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type], $Filters);
+        }
     } else {
-	// Something we don't know about yet - probably should raise an error or something
-	die ("A search query we don't understand");
+        // Something we don't know about yet - probably should raise an error or something
+        die ("Proxy script error: A search query we don't understand");
     }
     return $Original;
 }
 
 function BuildQuery($Original) {
-    // Facets mix and match objects and arrays, so a strait json_encode won't work with es
+    // Facets mix and match objects and arrays, so a straight json_encode won't work with es
     if (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
-	// if we're a Facet, lets rebuild the first array as objects
-	$NewQuery = new stdClass();
-	foreach ($Original['facets'] as $key => $value) {
-	    $NewQuery->$key = $value;
-	}
-	$Original['facets'] = $NewQuery;
+        // if we're a Facet, lets rebuild the first array as objects
+        $NewQuery = new stdClass();
+        foreach ($Original['facets'] as $key => $value) {
+            $NewQuery->$key = $value;
+        }
+        $Original['facets'] = $NewQuery;
+    } else {
+    # Empty queries can arise and are falsely mapped to JSON arrays instead of objects
+        if (empty($Original['query']['filtered']['query']['bool'])) {
+            $NewQuery = new stdClass();
+            $NewQuery->bool = json_decode ("{}");
+            $Original['query']['filtered']['query'] = $NewQuery;
+        }
     }
     return json_encode($Original);
 }
@@ -59,7 +66,7 @@ function BuildQuery($Original) {
 function DoFilters(&$Request, $Filters) {
     // Look for any "must" filters and build them
     foreach ($Filters as $Filter) {
-	$Request = AddFilter($Request, $Filter['type'], GenerateFilter($Filter['field'], $Filter['value']));
+        $Request = AddFilter($Request, $Filter['type'], GenerateFilter($Filter['field'], $Filter['value']));
     }
     return $Request;
 }
