@@ -11,7 +11,7 @@ function BuildUser($ini, $user, &$result) {
 	    // Adding a group to the stack
 	    // See if we're an array
 	    if (is_array($value)) {
-		// We are, so we need to loop though each one
+		// We are, so we need to loop through each one
 		foreach ($value as $group) {
 		    //echo "Adding Group: " . $group . "\n";
 		    BuildUser($ini, $group, $result);
