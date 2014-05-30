@@ -16,7 +16,7 @@ $filters = array();
 BuildUser($ini, "jakendall", $filters);
 
 function GenerateFilter($Field, $Value) {
-    $Add['fquery']['query']['field'][$Field]['query'] = $Value;
+    $Add['fquery']['query']['query_string']['query'] = "$Field:$Value";
     $Add['fquery']['_cache'] = 1;
     return $Add;
 }
