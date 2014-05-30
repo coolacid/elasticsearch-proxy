@@ -3,8 +3,10 @@ include_once("users.php");
 include_once("config.php");
 
 # JSON-POST must be read through php://input
-$rest_json = file_get_contents("php://input");
-$_POST = json_decode($rest_json, true);
+if (!$_POST) {
+    $rest_json = file_get_contents("php://input");
+    $_POST = json_decode($rest_json, true);
+}
 
 $baseUri = "http://" . $config['ES_HOST'] . $_SERVER["REQUEST_URI"];
 
