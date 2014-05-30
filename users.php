@@ -3,7 +3,11 @@
 function BuildUser($ini, $user, &$result) {
     // First, lets check that the user is defined
     if (!isset ($ini[$user]) || !array_key_exists($user, $ini)) {
-	die("INI: Group/User not found");
+	if (!isset ($ini['default']) || !array_key_exists('default', $ini)) {
+	    die("INI: Group or User is not found, and no default user.");
+	} else {
+	    $user = "default";
+	}
     }
     // Loop though the defines for each line of the user
     foreach ($ini[$user] as $key => $value) {
@@ -11,7 +15,7 @@ function BuildUser($ini, $user, &$result) {
 	    // Adding a group to the stack
 	    // See if we're an array
 	    if (is_array($value)) {
-		// We are, so we need to loop through each one
+		// We are, so we need to loop though each one
 		foreach ($value as $group) {
 		    //echo "Adding Group: " . $group . "\n";
 		    BuildUser($ini, $group, $result);
