@@ -60,6 +60,7 @@ To-do Steps
 ----------
 
 - Add Authentication "plugins" so we don't have to rely on web process to authenticate the user
+- Add support for kibana template searches, limiting access to tempates the users are suppose to access
 
 
 TipJar: https://gist.github.com/coolacid/9537573
