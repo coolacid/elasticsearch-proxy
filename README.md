@@ -36,6 +36,16 @@ Another option that was proposed was using targeted Kibana consoles, yeah, this 
 
 Another implementation, acts as a webserver and proxy in Ruby: https://github.com/christian-marie/kibana3_auth
 
+Small Issue
+-----------
+
+After talking with a Lucene developer, it was identified that this will not work 100%. Although, it does work, if a user specially crafts a search query, they could in fact get access to data they were not intended on having.
+
+The way elasticsearch/lucene handles queries, it applies a weight to the results. When we add our filters, it changes those weights as well. By no means will elasticsearch actually remove items, or not make them available.
+
+Should a user be able to identify the filter being applied, in theory, they could negate it by adding the opposite filters. 
+
+
 Why PHP
 -------
 
