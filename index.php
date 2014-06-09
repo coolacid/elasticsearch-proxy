@@ -16,7 +16,11 @@ $filters = array();
 BuildUser($ini, $_SERVER['REMOTE_USER'], $filters);
 
 function GenerateFilter($Field, $Value) {
-    $Add['fquery']['query']['query_string']['query'] = "$Field:$Value";
+    if(isset($Field) && strlen($Field) > 0) {
+	$Add['fquery']['query']['query_string']['query'] = sprintf("%s:\"%s\"",$Field,$Value);
+    } else {
+	$Add['fquery']['query']['query_string']['query'] = $Value;
+    }
     $Add['fquery']['_cache'] = 1;
     return $Add;
 }
@@ -68,7 +72,10 @@ function BuildQuery($Original) {
 function DoFilters(&$Request, $Filters) {
     // Look for any "must" filters and build them
     foreach ($Filters as $Filter) {
-        $Request = AddFilter($Request, $Filter['type'], GenerateFilter($Filter['field'], $Filter['value']));
+	$field = $value = NULL;
+	if(array_key_exists('field', $Filter)) $field = $Filter['field'];
+	if(array_key_exists('value', $Filter)) $value = $Filter['value'];
+        $Request = AddFilter($Request, $Filter['type'], GenerateFilter($field, $value));
     }
     return $Request;
 }
