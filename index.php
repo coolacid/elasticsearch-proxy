@@ -51,7 +51,9 @@ function AddFilter($Original, $Type, $Filters) {
 
 function BuildQuery($Original) {
     // Facets mix and match objects and arrays, so a straight json_encode won't work with es
-    if (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
+    $a = isset($Original) && array_key_exists('facets', $Original);
+    $b = isset($Original) && is_string($Original) && isset($$Original) && isset($$Original['facets']);
+    if ($a || $b) {
         // if we're a Facet, lets rebuild the first array as objects
         $NewQuery = new stdClass();
         foreach ($Original['facets'] as $key => $value) {
