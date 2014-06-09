@@ -93,7 +93,7 @@ $json_doc = BuildQuery($Request);
 $ci = curl_init();
 curl_setopt($ci, CURLOPT_URL, $baseUri);
 curl_setopt($ci, CURLOPT_PORT, $config['ES_PORT']);
-curl_setopt($ci, CURLOPT_TIMEOUT, 200);
+curl_setopt($ci, CURLOPT_TIMEOUT_MS, 500);
 curl_setopt($ci, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
 curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
