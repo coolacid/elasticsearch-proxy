@@ -16,7 +16,11 @@ $filters = array();
 BuildUser($ini, $_SERVER['REMOTE_USER'], $filters);
 
 function GenerateFilter($Field, $Value) {
-    $Add['fquery']['query']['query_string']['query'] = "$Field:$Value";
+    if(isset($Field) && strlen($Field) > 0) {
+	$Add['fquery']['query']['query_string']['query'] = sprintf("%s:\"%s\"",$Field,$Value);
+    } else {
+	$Add['fquery']['query']['query_string']['query'] = $Value;
+    }
     $Add['fquery']['_cache'] = 1;
     return $Add;
 }
@@ -47,7 +51,9 @@ function AddFilter($Original, $Type, $Filters) {
 
 function BuildQuery($Original) {
     // Facets mix and match objects and arrays, so a straight json_encode won't work with es
-    if (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
+    $a = isset($Original) && array_key_exists('facets', $Original);
+    $b = isset($Original) && is_string($Original) && isset($$Original) && isset($$Original['facets']);
+    if ($a || $b) {
         // if we're a Facet, lets rebuild the first array as objects
         $NewQuery = new stdClass();
         foreach ($Original['facets'] as $key => $value) {
@@ -68,7 +74,10 @@ function BuildQuery($Original) {
 function DoFilters(&$Request, $Filters) {
     // Look for any "must" filters and build them
     foreach ($Filters as $Filter) {
-        $Request = AddFilter($Request, $Filter['type'], GenerateFilter($Filter['field'], $Filter['value']));
+	$field = $value = NULL;
+	if(array_key_exists('field', $Filter)) $field = $Filter['field'];
+	if(array_key_exists('value', $Filter)) $value = $Filter['value'];
+        $Request = AddFilter($Request, $Filter['type'], GenerateFilter($field, $value));
     }
     return $Request;
 }
@@ -84,7 +93,7 @@ $json_doc = BuildQuery($Request);
 $ci = curl_init();
 curl_setopt($ci, CURLOPT_URL, $baseUri);
 curl_setopt($ci, CURLOPT_PORT, $config['ES_PORT']);
-curl_setopt($ci, CURLOPT_TIMEOUT, 200);
+curl_setopt($ci, CURLOPT_TIMEOUT_MS, 500);
 curl_setopt($ci, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
 curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
