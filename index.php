@@ -105,6 +105,8 @@ curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
 curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
 curl_setopt($ci, CURLOPT_POSTFIELDS, $json_doc);
 header('Content-Type: application/json');
+// Return the resulting ES query JSON as a header field to allow for easy debugging
+// header('X-Filtered-ES-Query: '.$json_doc);
 $response = curl_exec($ci);
 
 // Relay the response back to the client
