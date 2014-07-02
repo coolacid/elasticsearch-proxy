@@ -26,7 +26,9 @@ function GenerateFilter($Field, $Value) {
 }
 
 function AddFilter($Original, $Type, $Filters) {
+    $filtered = false;
     // We need to add the filter to the correct location, depending on which type of _search are we looking at
+    // Some requests are made up of different query types, for instance such for histograms with marker queries
     if (isset ($Original['query']) || array_key_exists('query', $Original)) {
         // This is a regular query
         // Check to see the type is already defined - if not, define it.
@@ -34,7 +36,9 @@ function AddFilter($Original, $Type, $Filters) {
             $Original['query']['filtered']['filter']['bool'][$Type] = array();
         }
         array_push($Original['query']['filtered']['filter']['bool'][$Type], $Filters);
-    } elseif (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
+        $filtered = true;
+    }
+    if (isset ($Original['facets']) || array_key_exists('facets', $Original)) {
         // This is a facet query
         foreach ($Original['facets'] as $key => $value) {
             if(!isset($Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type]) || !array_key_exists($Type, $Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'])) {
@@ -42,7 +46,9 @@ function AddFilter($Original, $Type, $Filters) {
             }
             array_push($Original['facets'][$key]['facet_filter']['fquery']['query']['filtered']['filter']['bool'][$Type], $Filters);
         }
-    } else {
+        $filtered = true;
+    }
+    if (!$filtered) {
         // Something we don't know about yet - probably should raise an error or something
         die ("Proxy script error: A search query we don't understand");
     }
@@ -99,6 +105,8 @@ curl_setopt($ci, CURLOPT_FORBID_REUSE, 0);
 curl_setopt($ci, CURLOPT_CUSTOMREQUEST, 'POST');
 curl_setopt($ci, CURLOPT_POSTFIELDS, $json_doc);
 header('Content-Type: application/json');
+// Return the resulting ES query JSON as a header field to allow for easy debugging
+// header('X-Filtered-ES-Query: '.$json_doc);
 $response = curl_exec($ci);
 
 // Relay the response back to the client
