@@ -37,9 +37,9 @@ Another option that was proposed was using targeted Kibana consoles, yeah, this 
 Other implementations
 ---------------------
 
-Webserver and proxy in Ruby (Private Dashboards, no ACL) -- https://github.com/christian-marie/kibana3_auth
-Node.js Authentication System (No ACL) -- https://github.com/fangli/kibana-authentication-proxy
-Filtered Aliases -- http://www.elasticsearch.org/blog/restricting-users-kibana-filtered-aliases/
+- Webserver and proxy in Ruby (Private Dashboards, no ACL) -- https://github.com/christian-marie/kibana3_auth
+- Node.js Authentication System (No ACL) -- https://github.com/fangli/kibana-authentication-proxy
+- Filtered Aliases -- http://www.elasticsearch.org/blog/restricting-users-kibana-filtered-aliases/
 
 Small Issue
 -----------
