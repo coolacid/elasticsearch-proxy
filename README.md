@@ -1,3 +1,8 @@
+** No Longer Maintained **
+==========================
+
+There are now much better ways todo this - plus, this doesn't support new query methods.
+
 elasticsearch-proxy
 ===================
 
